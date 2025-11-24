@@ -5,69 +5,6 @@
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 
-// Canvas自适应函数
-function resizeCanvas() {
-	const isLandscape = window.innerWidth > window.innerHeight;
-	const isMobile = window.innerWidth <= 768 || window.innerHeight <= 600;
-	
-	if (isLandscape && isMobile) {
-		// 横屏移动端：自适应屏幕
-		const container = document.querySelector('.game-wrap');
-		if (container) {
-			const containerRect = container.getBoundingClientRect();
-			const availableWidth = containerRect.width - 32; // 减去padding
-			const availableHeight = containerRect.height - 32;
-			
-			// 保持16:10的宽高比，但不超过可用空间
-			const aspectRatio = 16 / 10;
-			let newWidth = availableWidth;
-			let newHeight = newWidth / aspectRatio;
-			
-			if (newHeight > availableHeight) {
-				newHeight = availableHeight;
-				newWidth = newHeight * aspectRatio;
-			}
-			
-			canvas.width = Math.floor(newWidth);
-			canvas.height = Math.floor(newHeight);
-		}
-	} else {
-		// 默认尺寸
-		canvas.width = 960;
-		canvas.height = 640;
-	}
-	
-	// 设置Canvas显示尺寸
-	canvas.style.width = canvas.width + 'px';
-	canvas.style.height = canvas.height + 'px';
-}
-
-// 监听窗口大小变化和方向变化
-let resizeTimer;
-function handleResize() {
-	clearTimeout(resizeTimer);
-	resizeTimer = setTimeout(() => {
-		resizeCanvas();
-		if (!STATE.running) {
-			draw();
-		}
-	}, 100);
-}
-
-window.addEventListener('resize', handleResize);
-window.addEventListener('orientationchange', () => {
-	// 方向变化时延迟调整，等待浏览器完成布局
-	setTimeout(() => {
-		resizeCanvas();
-		if (!STATE.running) {
-			draw();
-		}
-	}, 300);
-});
-
-// 初始调整
-resizeCanvas();
-
 // UI
 const scoreEl = document.getElementById('score');
 const levelEl = document.getElementById('level');
@@ -169,10 +106,6 @@ function resetGame() {
 	STATE.running = false; STATE.paused = false;
 	STATE.score = 0; STATE.level = 0; STATE.correct = 0; STATE.wrong = 0; STATE.correctCounter = 0; STATE.levelProgress = 0;
 	items = [];
-	
-	// 确保Canvas尺寸正确
-	resizeCanvas();
-	
 	bird.x = 120; bird.y = canvas.height - 120; bird.size = 16; bird.target = null;
 	bird.idleMode = false; bird.idleTimer = 0; bird.nextIdleTarget = null; // 重置空闲状态
 	
@@ -2439,10 +2372,6 @@ function resetGame() {
 	STATE.running = false; STATE.paused = false;
 	startBtn.disabled = false; pauseBtn.disabled = true; pauseBtn.textContent = '暂停';
 	bird.target = null; items = [];
-	
-	// 确保Canvas尺寸正确
-	resizeCanvas();
-	
 	STATE.score = 0; STATE.level = 0; STATE.correct = 0; STATE.wrong = 0; STATE.levelProgress = 0; bird.size = 16; bird.x = 120; bird.y = canvas.height - 120;
 	
 	// 停止背景音乐
@@ -2940,30 +2869,15 @@ let animationComplete = false;
 function initSpiralCanvas() {
 	if (!spiralCanvas) return;
 	
-	// 设置Canvas尺寸（使用设备像素比以获得清晰显示）
-	const dpr = window.devicePixelRatio || 1;
-	spiralCanvas.width = window.innerWidth * dpr;
-	spiralCanvas.height = window.innerHeight * dpr;
-	spiralCanvas.style.width = window.innerWidth + 'px';
-	spiralCanvas.style.height = window.innerHeight + 'px';
+	// 设置Canvas尺寸
+	spiralCanvas.width = window.innerWidth;
+	spiralCanvas.height = window.innerHeight;
 	spiralCtx = spiralCanvas.getContext('2d');
 	
-	// 缩放上下文以匹配设备像素比
-	spiralCtx.scale(dpr, dpr);
-	
 	// 监听窗口大小变化
-	let resizeTimer;
 	window.addEventListener('resize', () => {
-		clearTimeout(resizeTimer);
-		resizeTimer = setTimeout(() => {
-			const dpr = window.devicePixelRatio || 1;
-			spiralCanvas.width = window.innerWidth * dpr;
-			spiralCanvas.height = window.innerHeight * dpr;
-			spiralCanvas.style.width = window.innerWidth + 'px';
-			spiralCanvas.style.height = window.innerHeight + 'px';
-			spiralCtx = spiralCanvas.getContext('2d');
-			spiralCtx.scale(dpr, dpr);
-		}, 100);
+		spiralCanvas.width = window.innerWidth;
+		spiralCanvas.height = window.innerHeight;
 	});
 }
 
@@ -2971,9 +2885,8 @@ function initSpiralCanvas() {
 function drawSpiral() {
 	if (!spiralCtx || !spiralCanvas) return;
 	
-	// 使用显示尺寸而不是Canvas实际尺寸（因为已缩放）
-	const width = window.innerWidth;
-	const height = window.innerHeight;
+	const width = spiralCanvas.width;
+	const height = spiralCanvas.height;
 	const centerX = width / 2;
 	const centerY = height / 2;
 	
@@ -3074,15 +2987,10 @@ function endSplashScreen() {
 	if (splashScreen) {
 		splashScreen.classList.add('fade-out');
 		
-		// 动画结束后移除元素并重新调整Canvas
+		// 动画结束后移除元素
 		setTimeout(() => {
 			if (splashScreen) {
 				splashScreen.style.display = 'none';
-			}
-			// 确保Canvas尺寸正确
-			resizeCanvas();
-			if (!STATE.running) {
-				draw();
 			}
 		}, 800);
 	}
