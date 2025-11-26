@@ -2435,122 +2435,8 @@ function toggleMusic() {
 	}
 }
 
-// ========== 长按打开词库导入（3秒）==========
-let longPressTimer = null;
-let longPressStartTime = 0;
-let longPressIndicator = null;
-
-function startLongPress(e) {
-	// 如果是在游戏进行中点击词条，不触发长按
-	if (STATE.running && !STATE.paused) {
-		const rect = canvas.getBoundingClientRect();
-		
-		// 计算缩放比例
-		const scaleX = canvas.width / rect.width;
-		const scaleY = canvas.height / rect.height;
-		
-		// 根据缩放比例调整坐标
-		const mx = (e.clientX - rect.left) * scaleX;
-		const my = (e.clientY - rect.top) * scaleY;
-		
-		// 检查是否点击了词条
-		for (const it of items) {
-			if (mx >= it.x - it.w/2 && mx <= it.x + it.w/2 &&
-			    my >= it.y - it.h/2 && my <= it.y + it.h/2) {
-				return; // 点击了词条，不触发长按
-			}
-		}
-	}
-	
-	longPressStartTime = Date.now();
-	
-	// 创建视觉提示
-	if (!longPressIndicator) {
-		longPressIndicator = document.createElement('div');
-		longPressIndicator.style.cssText = `
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			background: rgba(0, 0, 0, 0.8);
-			color: white;
-			padding: 20px 30px;
-			border-radius: 12px;
-			font-size: 16px;
-			font-weight: bold;
-			z-index: 9999;
-			pointer-events: none;
-			display: none;
-		`;
-		longPressIndicator.innerHTML = `
-			<div style="text-align: center;">
-				<div style="margin-bottom: 10px;">📥 松开打开词库导入</div>
-				<div style="width: 200px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; overflow: hidden;">
-					<div id="longPressProgress" style="width: 0%; height: 100%; background: #10b981; transition: width 0.1s linear;"></div>
-				</div>
-			</div>
-		`;
-		document.body.appendChild(longPressIndicator);
-	}
-	
-	longPressIndicator.style.display = 'block';
-	const progressBar = document.getElementById('longPressProgress');
-	
-	// 更新进度条
-	const updateProgress = () => {
-		if (!longPressStartTime) return;
-		
-		const elapsed = Date.now() - longPressStartTime;
-		const progress = Math.min((elapsed / 3000) * 100, 100);
-		
-		if (progressBar) {
-			progressBar.style.width = progress + '%';
-		}
-		
-		if (elapsed < 3000) {
-			requestAnimationFrame(updateProgress);
-		}
-	};
-	updateProgress();
-	
-	// 3秒后打开导入对话框
-	longPressTimer = setTimeout(() => {
-		cancelLongPress();
-		openImportModal();
-		showToast('📥 长按成功！打开词库导入', '#10b981');
-	}, 3000);
-}
-
-function cancelLongPress() {
-	if (longPressTimer) {
-		clearTimeout(longPressTimer);
-		longPressTimer = null;
-	}
-	longPressStartTime = 0;
-	
-	if (longPressIndicator) {
-		longPressIndicator.style.display = 'none';
-		const progressBar = document.getElementById('longPressProgress');
-		if (progressBar) {
-			progressBar.style.width = '0%';
-		}
-	}
-}
-
-function openImportModal() {
-	if (importModal) {
-		importModal.classList.remove('hidden');
-		if (wordInput) wordInput.focus();
-	}
-}
-
 // 事件
 canvas.addEventListener('click', onClickCanvas);
-
-// 长按事件（鼠标）
-canvas.addEventListener('mousedown', startLongPress);
-canvas.addEventListener('mouseup', cancelLongPress);
-canvas.addEventListener('mouseleave', cancelLongPress);
 
 // 触摸事件处理（移动端）
 let touchStartTime = 0;
@@ -2560,18 +2446,10 @@ canvas.addEventListener('touchstart', (e) => {
 	const touch = e.touches[0];
 	touchStartTime = Date.now();
 	touchStartPos = { x: touch.clientX, y: touch.clientY };
-	
-	const mouseEvent = new MouseEvent('mousedown', {
-		clientX: touch.clientX,
-		clientY: touch.clientY
-	});
-	startLongPress(mouseEvent);
 }, { passive: true });
 
 canvas.addEventListener('touchend', (e) => {
-	cancelLongPress();
-	
-	// 如果是快速点击（不是长按），触发点击事件
+	// 如果是快速点击，触发点击事件
 	const touchDuration = Date.now() - touchStartTime;
 	if (touchDuration < 500 && touchStartPos) {
 		const touch = e.changedTouches[0];
@@ -2590,8 +2468,6 @@ canvas.addEventListener('touchend', (e) => {
 	
 	touchStartPos = null;
 });
-
-canvas.addEventListener('touchcancel', cancelLongPress);
 
 startBtn.addEventListener('click', startGame);
 pauseBtn.addEventListener('click', pauseGame);
