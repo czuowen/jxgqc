@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>大嘴鸟 · 字词学习版</title>
+  <style>
+    /* 全局基础样式（大屏默认） */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
+    body { background: linear-gradient(135deg, #f5fafe 0%, #e8f4f8 100%); min-height: 100vh; }
+    .container { width: 100vw; height: 100vh; padding: 2vw; }
+    
+    /* 核心布局（大屏三栏） */
+    .landscape-layout { display: flex; width: 100%; height: 100%; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: 0 8px 32px rgba(138,173,212,0.15); overflow: hidden; }
+    .sidebar-left { width: 280px; padding: 2vw; background: linear-gradient(180deg, #4299e1 0%, #38b2ac 100%); color: white; display: flex; flex-direction: column; gap: 20px; }
+    /* 中间栏：改为上下结构（游戏入口+底部表单） */
+    .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2vw; background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5 5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e8f4f8' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E"); }
+    .sidebar-right { width: 80px; background: linear-gradient(180deg, #9f7aea 0%, #ed8936 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; gap: 10px; }
+    
+    /* AI助手按钮 */
+    .ai-assistant-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      color: #9f7aea;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-assistant-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      background: rgba(255,255,255,1);
+    }
+    .ai-assistant-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* 千问AI弹窗 */
+    .qianwen-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s ease;
+    }
+    .qianwen-modal.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .qianwen-container {
+      width: 90%;
+      max-width: 1200px;
+      height: 85vh;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    .qianwen-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .qianwen-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .qianwen-header .qianwen-logo {
+      font-size: 24px;
+    }
+    .qianwen-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qianwen-close:hover {
+      background: rgba(255,255,255,0.3);
+      transform: rotate(90deg);
+    }
+    .qianwen-iframe-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #f5f7fa;
+    }
+    .qianwen-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .qianwen-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      color: #667eea;
+    }
+    .qianwen-loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* 豆包AI播客播放器 */
+    .podcast-player {
+      position: fixed;
+      bottom: 20px;
+      right: 100px;
+      width: 400px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .podcast-player.active {
+      display: flex;
+    }
+    .podcast-header {
+      background: linear-gradient(135deg, #9f7aea 0%, #ed8936 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .podcast-header h3 {
+      margin: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .podcast-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.3s ease;
+    }
+    .podcast-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .podcast-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .podcast-info {
+      text-align: center;
+    }
+    .podcast-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+    .podcast-desc {
+      font-size: 14px;
+      color: #718096;
+      line-height: 1.6;
+    }
+    .podcast-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .podcast-play-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9f7aea 0%, #ed8936 100%);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(159,122,234,0.3);
+    }
+    .podcast-play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(159,122,234,0.4);
+    }
+    .podcast-progress {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .podcast-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .podcast-progress-filled {
+      height: 100%;
+      background: linear-gradient(90deg, #9f7aea 0%, #ed8936 100%);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .podcast-time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #718096;
+    }
+    .podcast-volume {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .podcast-volume-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #718096;
+      transition: color 0.3s ease;
+    }
+    .podcast-volume-btn:hover {
+      color: #9f7aea;
+    }
+    .podcast-volume-slider {
+      width: 80px;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    .podcast-volume-filled {
+      height: 100%;
+      background: linear-gradient(90deg, #9f7aea 0%, #ed8936 100%);
+      width: 100%;
+      border-radius: 2px;
+    }
+    
+    /* 组件样式 */
+    .header-landscape { display: flex; flex-direction: column; gap: 24px; flex-grow: 1; /* 让头部占据上方空间，把3D图推到中部偏下 */ }
+    .header-landscape h1 { font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+    .fancy-title a { color: white; text-decoration: none; position: relative; }
+    .fancy-title a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #ffd166; transition: width 0.3s ease; }
+    .fancy-title a:hover::after { width: 100%; }
+    .link-group { display: flex; flex-direction: column; gap: 16px; }
+    .homework-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; cursor: pointer; }
+    .homework-link:hover { background: white; color: #4299e1; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+    .homework-link::before { content: '📑'; }
+    #homework-answer::before { content: '🔍'; }
+    #teacher-classroom::before { content: '🎓'; }
+    /* 链接加载中样式 */
+    .homework-link.loading { opacity: 0.8; cursor: wait; }
+    .homework-link.loading:hover { background: rgba(255,255,255,0.2); transform: none; box-shadow: none; }
+
+    /* 3D球体效果（左栏中部偏下）- 动物图标版 */
+    .sphere-container {
+      width: 100%;
+      height: 220px; /* 适当增大高度，提升视觉占比 */
+      perspective: 800px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px; /* 轻微上移，确保在中部偏下 */
+    }
+    .sphere {
+      width: 180px; /* 适当增大球体尺寸，适配中部位置 */
+      height: 180px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotate 20s linear infinite;
+    }
+    .sphere-container:hover .sphere {
+      animation: rotate 8s linear infinite;
+    }
+    .sphere-face {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #4299e1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      backface-visibility: hidden;
+    }
+    /* 球面位置分布（适配增大的球体） */
+    .face-1 { transform: rotateY(0deg) translateZ(90px); }
+    .face-2 { transform: rotateY(45deg) translateZ(90px); }
+    .face-3 { transform: rotateY(90deg) translateZ(90px); }
+    .face-4 { transform: rotateY(135deg) translateZ(90px); }
+    .face-5 { transform: rotateY(180deg) translateZ(90px); }
+    .face-6 { transform: rotateY(225deg) translateZ(90px); }
+    .face-7 { transform: rotateY(270deg) translateZ(90px); }
+    .face-8 { transform: rotateY(315deg) translateZ(90px); }
+    .face-9 { transform: rotateX(45deg) rotateY(0deg) translateZ(90px); }
+    .face-10 { transform: rotateX(45deg) rotateY(90deg) translateZ(90px); }
+    .face-11 { transform: rotateX(45deg) rotateY(180deg) translateZ(90px); }
+    .face-12 { transform: rotateX(45deg) rotateY(270deg) translateZ(90px); }
+    .face-13 { transform: rotateX(-45deg) rotateY(0deg) translateZ(90px); }
+    .face-14 { transform: rotateX(-45deg) rotateY(90deg) translateZ(90px); }
+    .face-15 { transform: rotateX(-45deg) rotateY(180deg) translateZ(90px); }
+    .face-16 { transform: rotateX(-45deg) rotateY(270deg) translateZ(90px); }
+    @keyframes rotate {
+      0% { transform: rotateX(20deg) rotateY(0deg); }
+      100% { transform: rotateX(20deg) rotateY(360deg); }
+    }
+
+    /* 游戏链接样式（中间栏上方居中） */
+    .game-link-container {
+      text-align: center;
+      color: #4a5568;
+      max-width: 600px;
+      padding: 0 20px;
+      margin-top: auto; /* 垂直居中 */
+    }
+    .game-link { color: #38b2ac; text-decoration: none; font-size: 32px; font-weight: 700; margin-bottom: 24px; transition: all 0.3s ease; }
+    .game-link:hover { color: #4299e1; transform: scale(1.05); }
+    .game-desc { font-size: 18px; line-height: 1.8; color: #718096; margin-bottom: 16px; }
+    .link-tip { color: #ed8936; font-weight: 500; font-size: 16px; }
+    .link-tip span { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* 固定日期表单样式（中间栏下方） */
+    .middle-forms-container {
+      width: 100%;
+      max-width: 600px;
+      margin-top: auto; /* 靠底部 */
+      margin-bottom: 3vw; /* 距离底部间距 */
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(138,173,212,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-header {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4299e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .form-header::before { content: '📅'; }
+    .form-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+    .middle-date-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #333;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .middle-date-input:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66,153,225,0.1);
+    }
+    .middle-submit-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #4299e1 0%, #38b2ac 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .middle-submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(66,153,225,0.2);
+    }
+    /* 答疑按钮和音频按钮总宽度等于上方"打开练习PDF"按钮 */
+    /* 创建一个按钮组容器，限制总宽度 */
+    #answer-form .form-row {
+      display: flex;
+      align-items: stretch;
+    }
+    #answer-form .button-group {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+      width: fit-content;
+    }
+    #answer-form .answer-btn {
+      flex: 0 0 auto;
+    }
+    .podcast-form-btn {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #9f7aea 0%, #ed8936 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+    .podcast-form-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(159,122,234,0.3);
+    }
+    .middle-form-hint {
+      font-size: 13px;
+      color: #718096;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* 响应式：平板（768px~1023px） */
+    @media (max-width: 1023px) and (min-width: 768px) {
+      .sidebar-left { width: 240px; padding: 1.5vw; }
+      .sidebar-right { width: 60px; }
+      .header-landscape h1 { font-size: 24px; }
+      .homework-link { padding: 10px 16px; font-size: 15px; }
+      /* 3D球体适配 */
+      .sphere-container { height: 180px; }
+      .sphere { width: 150px; height: 150px; }
+      .sphere-face { width: 38px; height: 38px; font-size: 18px; }
+      .face-1 { transform: rotateY(0deg) translateZ(75px); }
+      .face-2 { transform: rotateY(45deg) translateZ(75px); }
+      .face-3 { transform: rotateY(90deg) translateZ(75px); }
+      .face-4 { transform: rotateY(135deg) translateZ(75px); }
+      .face-5 { transform: rotateY(180deg) translateZ(75px); }
+      .face-6 { transform: rotateY(225deg) translateZ(75px); }
+      .face-7 { transform: rotateY(270deg) translateZ(75px); }
+      .face-8 { transform: rotateY(315deg) translateZ(75px); }
+      .face-9 { transform: rotateX(45deg) rotateY(0deg) translateZ(75px); }
+      .face-10 { transform: rotateX(45deg) rotateY(90deg) translateZ(75px); }
+      .face-11 { transform: rotateX(45deg) rotateY(180deg) translateZ(75px); }
+      .face-12 { transform: rotateX(45deg) rotateY(270deg) translateZ(75px); }
+      .face-13 { transform: rotateX(-45deg) rotateY(0deg) translateZ(75px); }
+      .face-14 { transform: rotateX(-45deg) rotateY(90deg) translateZ(75px); }
+      .face-15 { transform: rotateX(-45deg) rotateY(180deg) translateZ(75px); }
+      .face-16 { transform: rotateX(-45deg) rotateY(270deg) translateZ(75px); }
+      /* 游戏区域适配 */
+      .game-link { font-size: 28px; }
+      .game-desc { font-size: 16px; }
+      .link-tip { font-size: 15px; }
+      /* 表单适配 */
+      .middle-forms-container { padding: 16px; gap: 12px; }
+      .form-row { gap: 8px; }
+      .middle-date-input { padding: 10px 14px; font-size: 14px; }
+      .middle-submit-btn { padding: 10px 16px; font-size: 14px; }
+      .podcast-form-btn { padding: 10px 14px; font-size: 14px; }
+    }
+
+    /* 响应式：手机（≤767px） */
+    @media (max-width: 767px) {
+      .landscape-layout { flex-direction: column; }
+      .sidebar-left { width: 100%; height: auto; padding: 12px; flex-direction: column; gap: 12px; }
+      .header-landscape { flex-direction: row; gap: 12px; flex: 1; align-items: center; }
+      .link-group { flex-direction: row; gap: 8px; }
+      .homework-link { padding: 8px 12px; font-size: 14px; }
+      /* 3D球体手机端隐藏 */
+      .sphere-container { display: none; }
+      /* 游戏区域适配 */
+      .game-area { flex: 1; padding: 1vw; }
+      .game-link { font-size: 24px; }
+      .game-desc { font-size: 15px; }
+      /* 表单手机端适配（单列布局） */
+      .middle-forms-container {
+        padding: 14px;
+        gap: 10px;
+        margin-bottom: 2vw;
+      }
+      .form-row {
+        flex-direction: column;
+        gap: 6px;
+      }
+      #answer-form .button-group {
+        width: 100% !important;
+        flex-direction: column;
+      }
+      .middle-submit-btn { width: 100%; }
+      .podcast-form-btn { width: 100%; }
+      .sidebar-right { width: 100%; height: 50px; flex-direction: row; }
+      .link-tip { font-size: 14px; }
+      /* 播客播放器手机端适配 */
+      .podcast-player {
+        right: 10px;
+        left: 10px;
+        width: auto;
+        bottom: 10px;
+      }
+      /* 千问弹窗手机端适配 */
+      .qianwen-container {
+        width: 95%;
+        height: 90vh;
+        border-radius: 16px;
+      }
+      .qianwen-header {
+        padding: 16px 20px;
+      }
+      .qianwen-header h3 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="landscape-layout">
+      <!-- 左侧：标题+链接+3D球体（中部偏下） -->
+      <aside class="sidebar-left">
+        <header class="header header-landscape">
+          <h1>🦜 <span class="fancy-title"><a href="https://voluble-travesseiro-e0d3b8.netlify.app/" target="_blank">大嘴鸟</a></span></h1>
+          <div class="link-group">
+            <a href="https://xxyd.jxeduyun.com/resource/list?column=1990382413876555778&type=1990383424817065986&stage=1984079254966145025&grade=1984165535347896322&subject=1984193942848700417&version=1990248132042153985&volume=1990250167030374402" id="daily-homework" class="homework-link" target="_blank">基础作业</a>
+            <a href="https://xxyd.jxeduyun.com/resource/list?column=1990382444880850946&type=1990383424817065986&stage=1984079254966145025&grade=1984165535347896322&subject=1984193942848700417&version=1990248132042153985&volume=1990250167030374402" id="homework-answer" class="homework-link" target="_blank">提升作业</a>
+            <a href="https://basic.smartedu.cn/syncClassroom?defaultTag=e7bbce2c-0590-11ed-9c79-92fc3b3249d5%2F44bebf7c-54e6-11ed-9c34-850ba61fa9f4%2F6a749654-0772-11ed-ac74-092ab92074e6%2F44bee8bc-54e6-11ed-9c34-850ba61fa9f4%2Fff8080814371757b014390f883db0453%2F5136342961" id="teacher-classroom" class="homework-link" target="_blank">名师课堂</a>
+          </div>
+        </header>
+
+        <!-- 3D球体效果（左栏中部偏下） -->
+        <div class="sphere-container">
+          <div class="sphere">
+            <!-- 十二生肖图标 -->
+            <div class="sphere-face face-1">🐭</div> <!-- 鼠 -->
+            <div class="sphere-face face-2">🐮</div> <!-- 牛 -->
+            <div class="sphere-face face-3">🐯</div> <!-- 虎 -->
+            <div class="sphere-face face-4">🐰</div> <!-- 兔 -->
+            <div class="sphere-face face-5">🐲</div> <!-- 龙 -->
+            <div class="sphere-face face-6">🐍</div> <!-- 蛇 -->
+            <div class="sphere-face face-7">🐴</div> <!-- 马 -->
+            <div class="sphere-face face-8">🐑</div> <!-- 羊 -->
+            <div class="sphere-face face-9">🐵</div> <!-- 猴 -->
+            <div class="sphere-face face-10">🐔</div> <!-- 鸡 -->
+            <div class="sphere-face face-11">🐶</div> <!-- 狗 -->
+            <div class="sphere-face face-12">🐷</div> <!-- 猪 -->
+            <!-- 额外4种常见动物图标 -->
+            <div class="sphere-face face-13">🐱</div> <!-- 猫 -->
+            <div class="sphere-face face-14">🐠</div> <!-- 鱼 -->
+            <div class="sphere-face face-15">🦜</div> <!-- 鸟（呼应大嘴鸟主题） -->
+            <div class="sphere-face face-16">🦌</div> <!-- 鹿 -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间：游戏入口（上方）+ 查询表单（下方） -->
+      <main class="game-area">
+        <!-- 游戏入口（上方居中） -->
+        <div class="game-link-container">
+          <a href="https://voluble-travesseiro-e0d3b8.netlify.app/" class="game-link" target="_blank">在游戏中学习</a>
+          <p class="game-desc">点击上方标题进入大嘴鸟字词学习游戏，提升字词认知能力！</p>
+          <p class="link-tip">
+            <span>🔗 左侧「基础作业」「提升作业」将在新窗口打开资源页面</span><br>
+            <span>📌 若链接无法打开，可联系管理员获取帮助</span>
+          </p>
+        </div>
+
+        <!-- 固定日期查询表单（下方） -->
+        <div class="middle-forms-container">
+          <div class="form-header">固定日期资源查询</div>
+          <!-- 表单一：固定日期练习 -->
+          <form class="form-row" id="practice-form">
+            <input type="text" class="middle-date-input" id="practice-date" placeholder="输入日期(yyyymmdd)" pattern="[0-9]{8}" required>
+            <button type="submit" class="middle-submit-btn">打开练习PDF</button>
+          </form>
+          <!-- 表单二：固定日期答疑 -->
+          <form class="form-row" id="answer-form">
+            <input type="text" class="middle-date-input" id="answer-date" placeholder="输入日期(yyyymmdd)" pattern="[0-9]{8}" required>
+            <div class="button-group">
+              <button type="submit" class="middle-submit-btn answer-btn">答疑</button>
+              <button type="button" class="podcast-form-btn" id="answer-podcast-btn" title="播放答疑音频">🎙️</button>
+            </div>
+          </form>
+          <p class="middle-form-hint">示例：20251124（仅支持20251124及之后有效日期）</p>
+        </div>
+      </main>
+
+      <!-- 右侧：AI助手 -->
+      <aside class="sidebar-right">
+        <button class="ai-assistant-btn" id="ai-assistant-btn" title="通义千问AI助手">🤖</button>
+      </aside>
+    </div>
+    
+    <!-- 通义千问AI弹窗 -->
+    <div class="qianwen-modal" id="qianwen-modal">
+      <div class="qianwen-container">
+        <div class="qianwen-header">
+          <h3>
+            <span class="qianwen-logo">🤖</span>
+            <span>通义千问 AI助手</span>
+          </h3>
+          <button class="qianwen-close" id="qianwen-close">×</button>
+        </div>
+        <div class="qianwen-iframe-container">
+          <div class="qianwen-loading" id="qianwen-loading">
+            <div class="qianwen-loading-spinner"></div>
+            <div>正在加载通义千问...</div>
+          </div>
+          <iframe 
+            class="qianwen-iframe" 
+            id="qianwen-iframe"
+            src="https://www.qianwen.com/"
+            allow="microphone; camera"
+            allowfullscreen
+            loading="lazy"
+            onload="document.getElementById('qianwen-loading').style.display='none'"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 豆包AI播客播放器 -->
+    <div class="podcast-player" id="podcast-player">
+      <div class="podcast-header">
+        <h3>🎙️ 豆包AI播客</h3>
+        <button class="podcast-close" id="podcast-close">×</button>
+      </div>
+      <div class="podcast-content">
+        <div class="podcast-info">
+          <div class="podcast-title">豆包AI播客</div>
+          <div class="podcast-desc">聆听AI生成的有声内容，让学习更轻松</div>
+          <div class="podcast-link" id="podcast-link" style="display: none; margin-top: 8px; font-size: 12px; color: #718096; word-break: break-all;">
+            <strong>音频链接：</strong><span id="podcast-link-text"></span>
+          </div>
+        </div>
+        <audio id="podcast-audio" preload="metadata"></audio>
+        <div class="podcast-controls">
+          <button class="podcast-play-btn" id="podcast-play-btn">▶</button>
+          <div class="podcast-progress">
+            <div class="podcast-progress-bar" id="podcast-progress-bar">
+              <div class="podcast-progress-filled" id="podcast-progress-filled"></div>
+            </div>
+            <div class="podcast-time">
+              <span id="podcast-current-time">00:00</span>
+              <span id="podcast-duration">00:00</span>
+            </div>
+          </div>
+          <div class="podcast-volume">
+            <button class="podcast-volume-btn" id="podcast-volume-btn">🔊</button>
+            <div class="podcast-volume-slider" id="podcast-volume-slider">
+              <div class="podcast-volume-filled" id="podcast-volume-filled"></div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+          <a href="https://www.doubao.com/podcast" target="_blank" style="color: #9f7aea; text-decoration: none; font-size: 14px;">访问豆包AI播客官网 →</a>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    // 验证日期是否合法（yyyymmdd格式 + 有效日期 + 20251124及之后）
+    function isValidDate(dateStr) {
+      // 1. 验证是否为8位数字
+      if (!/^\d{8}$/.test(dateStr)) return false;
+      
+      // 2. 解析日期
+      const year = parseInt(dateStr.slice(0, 4));
+      const month = parseInt(dateStr.slice(4, 6)) - 1; // 月份从0开始
+      const day = parseInt(dateStr.slice(6, 8));
+      const inputDate = new Date(year, month, day);
+      
+      // 3. 验证日期有效性（避免20250230等无效日期）
+      const isDateValid = (
+        inputDate.getFullYear() === year &&
+        inputDate.getMonth() === month &&
+        inputDate.getDate() === day
+      );
+      if (!isDateValid) return false;
+      
+      // 4. 验证日期是否≥20251124
+      const minDate = new Date(2025, 10, 24); // 2025年11月24日（月份0=1月）
+      return inputDate >= minDate;
+    }
+
+    // 生成指定日期的PDF链接
+    function generatePdfLinks(dateStr) {
+      return {
+        homework: `https://voluble-travesseiro-e0d3b8.netlify.app/zx/${dateStr}quiz.pdf`,
+        answer: `https://voluble-travesseiro-e0d3b8.netlify.app/zx/${dateStr}ans.pdf`
+      };
+    }
+
+    // 设置答疑和音频按钮的总宽度等于"打开练习PDF"按钮的宽度
+    function adjustAnswerButtonsWidth() {
+      const practiceBtn = document.querySelector('#practice-form .middle-submit-btn');
+      const buttonGroup = document.querySelector('#answer-form .button-group');
+      
+      if (practiceBtn && buttonGroup) {
+        const practiceBtnWidth = practiceBtn.offsetWidth;
+        buttonGroup.style.width = practiceBtnWidth + 'px';
+      }
+    }
+    
+    // 页面加载完成后调整按钮宽度
+    window.addEventListener('load', adjustAnswerButtonsWidth);
+    // 窗口大小改变时重新调整
+    window.addEventListener('resize', adjustAnswerButtonsWidth);
+    // DOMContentLoaded时也执行一次
+    document.addEventListener('DOMContentLoaded', adjustAnswerButtonsWidth);
+
+    // 固定日期表单提交事件（练习表单）
+    document.getElementById('practice-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // 无论输入框是否有值，都从今日开始查找可用的PDF链接
+      console.log('开始查找可用的练习PDF链接（从今日开始）...');
+      const result = await findAvailablePracticePdfLink(30);
+      
+      if (!result) {
+        alert('未找到可用的练习PDF文件。请确认文件是否存在。');
+        return;
+      }
+      
+      const dateStr = result.dateStr;
+      document.getElementById('practice-date').value = dateStr;
+      const practiceLink = result.pdfLink;
+      window.open(practiceLink, '_blank');
+      console.log(`打开练习PDF链接: ${practiceLink} (日期: ${dateStr})`);
+    });
+
+    // 获取答疑PDF链接的辅助函数（统一使用此函数生成PDF链接）
+    function getAnswerPdfLink(dateStr) {
+      // 使用与"打开答疑PDF"按钮完全相同的生成逻辑
+      return generatePdfLinks(dateStr).answer;
+    }
+
+    // 生成音频链接（将答疑PDF链接的.pdf改为.wav）
+    function generateAudioLink(dateStr) {
+      const answerPdfLink = getAnswerPdfLink(dateStr);
+      return answerPdfLink.replace('.pdf', '.wav');
+    }
+
+    // 获取日期字符串（yyyymmdd格式）
+    function getDateString(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}${month}${day}`;
+    }
+
+    // 获取今日日期字符串
+    function getTodayDateString() {
+      return getDateString(new Date());
+    }
+
+    // 获取前N天的日期字符串
+    function getPreviousDateString(daysAgo = 1) {
+      const date = new Date();
+      date.setDate(date.getDate() - daysAgo);
+      return getDateString(date);
+    }
+
+    // 检查PDF链接是否存在（通过fetch GET请求检查）
+    async function checkPdfLinkExists(pdfLink) {
+      return new Promise((resolve) => {
+        let resolved = false;
+        
+        // 使用fetch GET请求检查PDF
+        fetch(pdfLink, {
+          method: 'GET',
+          mode: 'no-cors',
+          cache: 'no-cache'
+        })
+        .then(() => {
+          // no-cors模式下无法读取状态，使用iframe验证
+          const iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.style.position = 'absolute';
+          iframe.style.left = '-9999px';
+          iframe.style.width = '1px';
+          iframe.style.height = '1px';
+          
+          let checkResolved = false;
+          
+          const cleanup = () => {
+            if (iframe.parentNode) {
+              document.body.removeChild(iframe);
+            }
+          };
+          
+          // 设置超时
+          const timeout = setTimeout(() => {
+            if (!checkResolved) {
+              checkResolved = true;
+              cleanup();
+              if (!resolved) {
+                resolved = true;
+                // 超时可能因为文件较大，假设存在
+                resolve(true);
+              }
+            }
+          }, 2000);
+          
+          iframe.onload = () => {
+            if (!checkResolved) {
+              checkResolved = true;
+              clearTimeout(timeout);
+              cleanup();
+              if (!resolved) {
+                resolved = true;
+                resolve(true);
+              }
+            }
+          };
+          
+          iframe.onerror = () => {
+            if (!checkResolved) {
+              checkResolved = true;
+              clearTimeout(timeout);
+              cleanup();
+              if (!resolved) {
+                resolved = true;
+                resolve(false);
+              }
+            }
+          };
+          
+          iframe.src = pdfLink;
+          document.body.appendChild(iframe);
+        })
+        .catch(() => {
+          if (!resolved) {
+            resolved = true;
+            // 如果fetch失败，尝试直接检查
+            resolve(true);
+          }
+        });
+      });
+    }
+
+    // 检查音频链接是否存在
+    async function checkAudioLinkExists(audioLink) {
+      return new Promise((resolve) => {
+        const audio = new Audio();
+        let resolved = false;
+        
+        const cleanup = () => {
+          audio.oncanplaythrough = null;
+          audio.onerror = null;
+          audio.onloadstart = null;
+          audio.src = '';
+        };
+        
+        audio.oncanplaythrough = () => {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            resolve(true);
+          }
+        };
+        
+        audio.onerror = () => {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            resolve(false);
+          }
+        };
+        
+        audio.onloadstart = () => {
+          // 开始加载，等待结果
+        };
+        
+        audio.src = audioLink;
+        audio.load();
+        
+        // 设置超时（3秒）
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            resolve(false);
+          }
+        }, 3000);
+      });
+    }
+
+    // 查找存在的练习PDF链接（从今日开始往前查找）
+    async function findAvailablePracticePdfLink(maxDays = 30) {
+      let currentDate = new Date();
+      
+      for (let i = 0; i < maxDays; i++) {
+        const dateStr = getDateString(currentDate);
+        
+        // 检查日期是否有效（≥20251124）
+        if (!isValidDate(dateStr)) {
+          break;
+        }
+        
+        const pdfLink = generatePdfLinks(dateStr).homework;
+        console.log(`检查练习PDF链接 (${i === 0 ? '今日' : `${i}天前`}): ${pdfLink}`);
+        
+        const exists = await checkPdfLinkExists(pdfLink);
+        if (exists) {
+          console.log(`找到存在的练习PDF链接: ${pdfLink}`);
+          return { pdfLink, dateStr };
+        }
+        
+        // 往前推一天
+        currentDate.setDate(currentDate.getDate() - 1);
+      }
+      
+      return null;
+    }
+
+    // 查找存在的答疑PDF链接（从今日开始往前查找）
+    async function findAvailableAnswerPdfLink(maxDays = 30) {
+      let currentDate = new Date();
+      
+      for (let i = 0; i < maxDays; i++) {
+        const dateStr = getDateString(currentDate);
+        
+        // 检查日期是否有效（≥20251124）
+        if (!isValidDate(dateStr)) {
+          break;
+        }
+        
+        const pdfLink = getAnswerPdfLink(dateStr);
+        console.log(`检查答疑PDF链接 (${i === 0 ? '今日' : `${i}天前`}): ${pdfLink}`);
+        
+        const exists = await checkPdfLinkExists(pdfLink);
+        if (exists) {
+          console.log(`找到存在的答疑PDF链接: ${pdfLink}`);
+          return { pdfLink, dateStr };
+        }
+        
+        // 往前推一天
+        currentDate.setDate(currentDate.getDate() - 1);
+      }
+      
+      return null;
+    }
+
+    // 查找存在的音频链接（从今日开始往前查找）
+    async function findAvailableAudioLink(maxDays = 30) {
+      // 首先尝试今日
+      let currentDate = new Date();
+      
+      for (let i = 0; i < maxDays; i++) {
+        const dateStr = getDateString(currentDate);
+        
+        // 检查日期是否有效（≥20251124）
+        if (!isValidDate(dateStr)) {
+          break;
+        }
+        
+        const audioLink = generateAudioLink(dateStr);
+        console.log(`检查音频链接 (${i === 0 ? '今日' : `${i}天前`}): ${audioLink}`);
+        
+        const exists = await checkAudioLinkExists(audioLink);
+        if (exists) {
+          console.log(`找到存在的音频链接: ${audioLink}`);
+          return { audioLink, dateStr };
+        }
+        
+        // 往前推一天
+        currentDate.setDate(currentDate.getDate() - 1);
+      }
+      
+      return null;
+    }
+
+    // 固定日期表单提交事件（答疑表单）
+    document.getElementById('answer-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // 无论输入框是否有值，都从今日开始查找可用的PDF链接
+      console.log('开始查找可用的答疑PDF链接（从今日开始）...');
+      const result = await findAvailableAnswerPdfLink(30);
+      
+      if (!result) {
+        alert('未找到可用的答疑PDF文件。请确认文件是否存在。');
+        return;
+      }
+      
+      const dateStr = result.dateStr;
+      document.getElementById('answer-date').value = dateStr;
+      const answerLink = result.pdfLink;
+      window.open(answerLink, '_blank');
+      console.log(`打开答疑PDF链接: ${answerLink} (日期: ${dateStr})`);
+    });
+
+    // 答疑PDF的AI播客按钮点击事件
+    document.getElementById('answer-podcast-btn').addEventListener('click', async function() {
+      // 打开播放器
+      podcastPlayer.classList.add('active');
+      
+      // 显示加载状态
+      podcastPlayBtn.textContent = '⏳';
+      podcastPlayBtn.disabled = true;
+      
+      // 查找存在的音频链接（从今日开始往前查找）
+      console.log('开始查找可用的音频链接...');
+      const result = await findAvailableAudioLink(30);
+      
+      if (!result) {
+        podcastPlayBtn.textContent = '▶';
+        podcastPlayBtn.disabled = false;
+        alert('未找到可用的音频文件。请确认音频文件是否存在。');
+        return;
+      }
+      
+      const { audioLink, dateStr } = result;
+      console.log(`找到音频链接: ${audioLink} (日期: ${dateStr})`);
+      
+      // 更新输入框显示找到的日期（如果输入框为空）
+      const answerDateInput = document.getElementById('answer-date');
+      if (answerDateInput && answerDateInput.value.trim() === '') {
+        answerDateInput.value = dateStr;
+      }
+      
+      // 移除之前的错误监听器（避免重复绑定）
+      podcastAudio.onerror = null;
+      podcastAudio.oncanplay = null;
+      podcastAudio.onloadstart = null;
+      
+      // 设置音频源
+      podcastAudio.src = audioLink;
+      
+      // 显示音频链接
+      const podcastLinkDiv = document.getElementById('podcast-link');
+      const podcastLinkText = document.getElementById('podcast-link-text');
+      podcastLinkDiv.style.display = 'block';
+      podcastLinkText.textContent = audioLink;
+      podcastLinkText.style.cursor = 'pointer';
+      podcastLinkText.title = '点击复制链接';
+      podcastLinkText.onclick = function() {
+        navigator.clipboard.writeText(audioLink).then(() => {
+          alert('链接已复制到剪贴板：\n' + audioLink);
+        }).catch(() => {
+          // 如果复制失败，尝试选中文本
+          const range = document.createRange();
+          range.selectNode(podcastLinkText);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+          alert('请手动复制链接：\n' + audioLink);
+        });
+      };
+      
+      // 监听音频加载错误
+      podcastAudio.onerror = function(e) {
+        console.error('音频加载错误:', e);
+        console.error('错误详情:', podcastAudio.error);
+        podcastPlayBtn.textContent = '▶';
+        podcastPlayBtn.disabled = false;
+        
+        let errorMsg = '音频加载失败。\n\n';
+        errorMsg += 'PDF链接：' + answerPdfLink + '\n';
+        errorMsg += '音频链接：' + audioLink + '\n\n';
+        
+        if (podcastAudio.error) {
+          switch(podcastAudio.error.code) {
+            case podcastAudio.error.MEDIA_ERR_ABORTED:
+              errorMsg += '错误：用户中止加载';
+              break;
+            case podcastAudio.error.MEDIA_ERR_NETWORK:
+              errorMsg += '错误：网络错误，请检查网络连接\n';
+              errorMsg += '提示：可能是CORS跨域问题，音频服务器需要允许跨域访问';
+              break;
+            case podcastAudio.error.MEDIA_ERR_DECODE:
+              errorMsg += '错误：音频解码失败';
+              break;
+            case podcastAudio.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+              errorMsg += '错误：音频格式不支持或文件不存在\n';
+              errorMsg += '提示：请确认音频文件是否存在，或尝试直接在浏览器中打开音频链接';
+              break;
+            default:
+              errorMsg += '错误：未知错误 (错误代码: ' + podcastAudio.error.code + ')';
+          }
+        } else {
+          errorMsg += '错误：无法加载音频文件\n';
+          errorMsg += '可能原因：\n';
+          errorMsg += '1. 音频文件不存在\n';
+          errorMsg += '2. CORS跨域限制\n';
+          errorMsg += '3. 网络连接问题';
+        }
+        
+        errorMsg += '\n\n调试信息：\n';
+        errorMsg += '请在浏览器控制台查看详细错误信息（按F12打开开发者工具）';
+        alert(errorMsg);
+      };
+      
+      // 监听音频可以播放
+      podcastAudio.oncanplay = function() {
+        console.log('音频加载成功，可以播放');
+        podcastPlayBtn.textContent = '▶';
+        podcastPlayBtn.disabled = false;
+        
+        // 自动播放
+        podcastAudio.play().then(() => {
+          podcastPlayBtn.textContent = '⏸';
+          console.log('音频播放成功');
+        }).catch((playError) => {
+          console.error('播放失败:', playError);
+          podcastPlayBtn.textContent = '▶';
+          let playErrorMsg = '播放失败：' + playError.message + '\n\n';
+          playErrorMsg += '音频链接：' + audioLink + '\n\n';
+          playErrorMsg += '提示：某些浏览器可能阻止自动播放，请手动点击播放按钮';
+          alert(playErrorMsg);
+        });
+      };
+      
+      // 监听音频加载进度
+      podcastAudio.onloadstart = function() {
+        console.log('开始加载音频...');
+      };
+      
+      // 监听音频元数据加载
+      podcastAudio.onloadedmetadata = function() {
+        console.log('音频元数据加载完成，时长：', podcastAudio.duration, '秒');
+      };
+      
+      // 开始加载音频
+      podcastAudio.load();
+    });
+
+    // 通义千问AI助手功能
+    const aiAssistantBtn = document.getElementById('ai-assistant-btn');
+
+    // 点击按钮在新窗口打开千问网站
+    aiAssistantBtn.addEventListener('click', () => {
+      window.open('https://www.qianwen.com/', '_blank', 'noopener,noreferrer');
+    });
+
+    // 豆包AI播客功能（保留，供表单中的播客按钮使用）
+    const podcastPlayer = document.getElementById('podcast-player');
+    const podcastClose = document.getElementById('podcast-close');
+    const podcastAudio = document.getElementById('podcast-audio');
+    const podcastPlayBtn = document.getElementById('podcast-play-btn');
+    const podcastProgressBar = document.getElementById('podcast-progress-bar');
+    const podcastProgressFilled = document.getElementById('podcast-progress-filled');
+    const podcastCurrentTime = document.getElementById('podcast-current-time');
+    const podcastDuration = document.getElementById('podcast-duration');
+    const podcastVolumeBtn = document.getElementById('podcast-volume-btn');
+    const podcastVolumeSlider = document.getElementById('podcast-volume-slider');
+    const podcastVolumeFilled = document.getElementById('podcast-volume-filled');
+
+    // 关闭播放器
+    podcastClose.addEventListener('click', () => {
+      podcastPlayer.classList.remove('active');
+      podcastAudio.pause();
+      podcastPlayBtn.textContent = '▶';
+    });
+
+    // 格式化时间
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '00:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // 播放/暂停
+    podcastPlayBtn.addEventListener('click', () => {
+      if (podcastAudio.paused) {
+        if (!podcastAudio.src) {
+          alert('请先设置播客音频源');
+          return;
+        }
+        podcastAudio.play();
+        podcastPlayBtn.textContent = '⏸';
+      } else {
+        podcastAudio.pause();
+        podcastPlayBtn.textContent = '▶';
+      }
+    });
+
+    // 更新进度条
+    podcastAudio.addEventListener('timeupdate', () => {
+      const percent = (podcastAudio.currentTime / podcastAudio.duration) * 100;
+      podcastProgressFilled.style.width = percent + '%';
+      podcastCurrentTime.textContent = formatTime(podcastAudio.currentTime);
+    });
+
+    // 更新总时长
+    podcastAudio.addEventListener('loadedmetadata', () => {
+      podcastDuration.textContent = formatTime(podcastAudio.duration);
+    });
+
+    // 点击进度条跳转
+    podcastProgressBar.addEventListener('click', (e) => {
+      const rect = podcastProgressBar.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      podcastAudio.currentTime = percent * podcastAudio.duration;
+    });
+
+    // 音量控制
+    let isMuted = false;
+    let savedVolume = 1;
+    podcastVolumeBtn.addEventListener('click', () => {
+      if (isMuted) {
+        podcastAudio.volume = savedVolume;
+        podcastVolumeBtn.textContent = '🔊';
+        isMuted = false;
+      } else {
+        savedVolume = podcastAudio.volume;
+        podcastAudio.volume = 0;
+        podcastVolumeBtn.textContent = '🔇';
+        isMuted = true;
+      }
+      updateVolumeDisplay();
+    });
+
+    podcastVolumeSlider.addEventListener('click', (e) => {
+      const rect = podcastVolumeSlider.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      podcastAudio.volume = Math.max(0, Math.min(1, percent));
+      isMuted = podcastAudio.volume === 0;
+      podcastVolumeBtn.textContent = isMuted ? '🔇' : '🔊';
+      updateVolumeDisplay();
+    });
+
+    function updateVolumeDisplay() {
+      const percent = podcastAudio.volume * 100;
+      podcastVolumeFilled.style.width = percent + '%';
+    }
+
+    // 初始化音量
+    podcastAudio.volume = 0.7;
+    updateVolumeDisplay();
+
+    // 播放结束
+    podcastAudio.addEventListener('ended', () => {
+      podcastPlayBtn.textContent = '▶';
+      podcastProgressFilled.style.width = '0%';
+      podcastCurrentTime.textContent = '00:00';
+    });
+  </script>
+</body>
+</html>
