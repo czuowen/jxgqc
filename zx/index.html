@@ -792,21 +792,36 @@
     // 固定日期表单提交事件（练习表单）
     document.getElementById('practice-form').addEventListener('submit', async function(e) {
       e.preventDefault();
+      let dateStr = document.getElementById('practice-date').value.trim();
       
-      // 无论输入框是否有值，都从今日开始查找可用的PDF链接
-      console.log('开始查找可用的练习PDF链接（从今日开始）...');
-      const result = await findAvailablePracticePdfLink(30);
-      
-      if (!result) {
-        alert('未找到可用的练习PDF文件。请确认文件是否存在。');
+      // 如果输入框为空，则查找可用的PDF链接
+      if (!dateStr) {
+        console.log('输入框为空，开始查找可用的练习PDF链接...');
+        const result = await findAvailablePracticePdfLink(30);
+        
+        if (!result) {
+          alert('未找到可用的练习PDF文件。请手动输入日期或确认文件是否存在。');
+          return;
+        }
+        
+        dateStr = result.dateStr;
+        document.getElementById('practice-date').value = dateStr;
+        const practiceLink = result.pdfLink;
+        window.open(practiceLink, '_blank');
+        console.log(`打开练习PDF链接: ${practiceLink} (日期: ${dateStr})`);
         return;
       }
       
-      const dateStr = result.dateStr;
-      document.getElementById('practice-date').value = dateStr;
-      const practiceLink = result.pdfLink;
+      // 验证日期合法性
+      if (!isValidDate(dateStr)) {
+        alert('请输入20251124及之后的合法日期（格式：yyyymmdd），例如：20251124');
+        return;
+      }
+
+      // 生成并打开链接
+      const practiceLink = generatePdfLinks(dateStr).homework;
       window.open(practiceLink, '_blank');
-      console.log(`打开练习PDF链接: ${practiceLink} (日期: ${dateStr})`);
+      console.log(`打开固定日期练习链接：${practiceLink}`);
     });
 
     // 获取答疑PDF链接的辅助函数（统一使用此函数生成PDF链接）
@@ -841,81 +856,68 @@
       return getDateString(date);
     }
 
-    // 检查PDF链接是否存在（通过fetch GET请求检查）
+    // 检查PDF链接是否存在
     async function checkPdfLinkExists(pdfLink) {
       return new Promise((resolve) => {
         let resolved = false;
         
-        // 使用fetch GET请求检查PDF
-        fetch(pdfLink, {
-          method: 'GET',
+        // 使用fetch检查PDF链接
+        fetch(pdfLink, { 
+          method: 'HEAD', 
           mode: 'no-cors',
           cache: 'no-cache'
         })
-        .then(() => {
-          // no-cors模式下无法读取状态，使用iframe验证
-          const iframe = document.createElement('iframe');
-          iframe.style.display = 'none';
-          iframe.style.position = 'absolute';
-          iframe.style.left = '-9999px';
-          iframe.style.width = '1px';
-          iframe.style.height = '1px';
-          
-          let checkResolved = false;
-          
-          const cleanup = () => {
-            if (iframe.parentNode) {
-              document.body.removeChild(iframe);
-            }
-          };
-          
-          // 设置超时
-          const timeout = setTimeout(() => {
-            if (!checkResolved) {
-              checkResolved = true;
-              cleanup();
+          .then(() => {
+            // 由于no-cors模式无法读取状态码，我们使用iframe来验证
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.top = '-9999px';
+            iframe.style.left = '-9999px';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+            iframe.style.opacity = '0';
+            
+            const cleanup = () => {
+              if (iframe.parentNode) {
+                document.body.removeChild(iframe);
+              }
+            };
+            
+            iframe.onload = () => {
               if (!resolved) {
                 resolved = true;
-                // 超时可能因为文件较大，假设存在
+                cleanup();
                 resolve(true);
               }
-            }
-          }, 2000);
-          
-          iframe.onload = () => {
-            if (!checkResolved) {
-              checkResolved = true;
-              clearTimeout(timeout);
-              cleanup();
+            };
+            
+            iframe.onerror = () => {
               if (!resolved) {
                 resolved = true;
-                resolve(true);
-              }
-            }
-          };
-          
-          iframe.onerror = () => {
-            if (!checkResolved) {
-              checkResolved = true;
-              clearTimeout(timeout);
-              cleanup();
-              if (!resolved) {
-                resolved = true;
+                cleanup();
                 resolve(false);
               }
+            };
+            
+            iframe.src = pdfLink;
+            document.body.appendChild(iframe);
+            
+            // 设置超时（2秒）
+            setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                cleanup();
+                // 超时后假设PDF可能存在（因为无法准确判断）
+                resolve(true);
+              }
+            }, 2000);
+          })
+          .catch(() => {
+            if (!resolved) {
+              resolved = true;
+              resolve(false);
             }
-          };
-          
-          iframe.src = pdfLink;
-          document.body.appendChild(iframe);
-        })
-        .catch(() => {
-          if (!resolved) {
-            resolved = true;
-            // 如果fetch失败，尝试直接检查
-            resolve(true);
-          }
-        });
+          });
       });
     }
 
@@ -1054,21 +1056,38 @@
     // 固定日期表单提交事件（答疑表单）
     document.getElementById('answer-form').addEventListener('submit', async function(e) {
       e.preventDefault();
+      let dateStr = document.getElementById('answer-date').value.trim();
       
-      // 无论输入框是否有值，都从今日开始查找可用的PDF链接
-      console.log('开始查找可用的答疑PDF链接（从今日开始）...');
-      const result = await findAvailableAnswerPdfLink(30);
-      
-      if (!result) {
-        alert('未找到可用的答疑PDF文件。请确认文件是否存在。');
+      // 如果输入框为空，则查找可用的PDF链接
+      if (!dateStr) {
+        console.log('输入框为空，开始查找可用的答疑PDF链接...');
+        const result = await findAvailableAnswerPdfLink(30);
+        
+        if (!result) {
+          alert('未找到可用的答疑PDF文件。请手动输入日期或确认文件是否存在。');
+          return;
+        }
+        
+        dateStr = result.dateStr;
+        document.getElementById('answer-date').value = dateStr;
+        const answerLink = result.pdfLink;
+        window.open(answerLink, '_blank');
+        console.log(`打开答疑PDF链接: ${answerLink} (日期: ${dateStr})`);
         return;
       }
       
-      const dateStr = result.dateStr;
-      document.getElementById('answer-date').value = dateStr;
-      const answerLink = result.pdfLink;
+      // 验证日期合法性
+      if (!isValidDate(dateStr)) {
+        alert('请输入20251124及之后的合法日期（格式：yyyymmdd），例如：20251124');
+        return;
+      }
+
+      // 生成答疑PDF链接（使用统一的生成函数）
+      const answerLink = getAnswerPdfLink(dateStr);
+      
+      // 打开PDF链接
       window.open(answerLink, '_blank');
-      console.log(`打开答疑PDF链接: ${answerLink} (日期: ${dateStr})`);
+      console.log(`打开固定日期答疑链接：${answerLink}`);
     });
 
     // 答疑PDF的AI播客按钮点击事件
